@@ -38,7 +38,7 @@ app.layout = dbc.Container(html.Div(
             [
                 dbc.Card([
                     dbc.CardHeader([
-                        html.H5("Option 1", className="card-title"),
+                        html.H5("Option 1", id="info_1", className="card-title"),
                     ]),
                     dbc.CardBody(
                         [
@@ -55,7 +55,7 @@ app.layout = dbc.Container(html.Div(
                 ),
                 dbc.Card([
                     dbc.CardHeader(
-                        [html.H5("Option 2", className="card-title")]
+                        [html.H5("Option 2", id="info_2", className="card-title")]
                     ),
                     dbc.CardBody(
                         [
@@ -91,10 +91,12 @@ def generate_uuid(current_uuid):
     Output("output_question", "children"),
     Output("output_definition_1", "children"),
     Output("output_definition_2", "children"),
+    Output("info_1", "children"),
+    Output("info_2", "children"),
     Input("url", "pathname")
 )
 def change_text(_):
-    question, definition_1, definition_2 = random_question()
+    question, definition_1, definition_2, generator_1, generator_2 = random_question()
 
     highlighted_context = []
     modified_text = question.context_sentence.split(question.context_word.strip())
@@ -106,6 +108,8 @@ def change_text(_):
         highlighted_context[:-1],
         [definition_1.text, html.Span(str(definition_1.id), style={"visibility": "hidden"})],
         [definition_2.text, html.Span(str(definition_2.id), style={"visibility": "hidden"})],
+        ["Option 1", f" ({generator_1.type}: {generator_1.name})"],
+        ["Option 2", f" ({generator_2.type}: {generator_2.name})"]
     ]
 
 

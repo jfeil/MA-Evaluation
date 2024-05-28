@@ -68,13 +68,14 @@ class User(Base):
     ipaddress: Mapped[str]
 
 
-def random_question() -> Tuple[Question, Definition, Definition]:
+def random_question() -> Tuple[Question, Definition, Definition, DefinitionGenerator, DefinitionGenerator]:
     with Session(engine) as sess:
         question = sess.query(Question).order_by(func.random()).first()
         definitions = list(question.definitions)
         shuffle(definitions)
         definitions = definitions[:2]
-    return question, *definitions
+        generators = [d.generator for d in definitions]
+    return question, *definitions, *generators
 
 
 def submit_response(question, winner, loser, session_id):
