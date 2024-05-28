@@ -15,7 +15,7 @@ app.layout = dbc.Container(html.Div(
         dcc.Location(id='url', refresh=False),
         dcc.Store(id='session_uuid', storage_type='local'),
         html.H1(
-            children='Jans Masterarbeitsevalurierungshilfswebseite :)',
+            children='Jans Masterarbeitsevaluierungshilfswebseite :)',
             style={
                 'textAlign': 'center',
             }
@@ -102,7 +102,7 @@ def change_text(_):
         highlighted_context += [val, html.Span(question.context_word.strip(), style={'color': 'red'}), ]
 
     return [
-        [question.title, html.Span(str(question.id), style={"visibility": "hidden"})],
+        [question.title.strip(), html.Span(str(question.id), style={"visibility": "hidden"})],
         highlighted_context[:-1],
         [definition_1.text, html.Span(str(definition_1.id), style={"visibility": "hidden"})],
         [definition_2.text, html.Span(str(definition_2.id), style={"visibility": "hidden"})],
