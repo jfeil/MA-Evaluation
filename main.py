@@ -33,6 +33,7 @@ app.layout = dbc.Container(html.Div(
         html.Div(children="", id="output_definition_2"),
         html.Button("SELECT 1", id="button_1"),
         html.Button("SELECT 2", id="button_2"),
+        html.Br(),
         html.Button("!ERROR IN QUESTION!", id="button_error"),
     ]
 ), fluid=True)
@@ -105,7 +106,7 @@ def submit_selection(question, winner, loser, session_id):
 
 @callback(
     Output("url", "pathname", allow_duplicate=True),
-    Input("button_1", "n_clicks"),
+    Input("button_error", "n_clicks"),
     State("title", "children"),
     State("session_uuid", "data"),
     prevent_initial_call=True
