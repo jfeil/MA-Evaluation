@@ -1,3 +1,4 @@
+import os
 import uuid
 from random import shuffle
 from typing import Optional, List, Tuple
@@ -7,7 +8,7 @@ from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped, relationship,
 from sqlalchemy.dialects.postgresql import UUID
 
 
-engine = create_engine("postgresql://postgres:example@localhost/devel")
+engine = create_engine(f"postgresql://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_SERVER']}/{os.environ['DB_DATABASE']}")
 
 
 class Base(DeclarativeBase):
@@ -54,17 +55,17 @@ class UserResponse(Base):
     loser: Mapped[UUID] = mapped_column(ForeignKey("definition_response.id"))
 
 
-class User(Base):
-    __tablename__ = "user"
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    ipaddress: Mapped[str]
-
-
 class QuestionError(Base):
     __tablename__ = "question_error"
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     session: Mapped[UUID] = mapped_column(ForeignKey("user.id"))
-    question: Mapped[str] = mapped_column(ForeignKey("user.id"))
+    question: Mapped[str] = mapped_column(ForeignKey("question.id"))
+
+
+class User(Base):
+    __tablename__ = "user"
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    ipaddress: Mapped[str]
 
 
 def random_question() -> Tuple[Question, Definition, Definition]:
@@ -82,6 +83,7 @@ def submit_response(question, winner, loser, session_id):
         if not user_session:
             user_session = User(id=session_id, ipaddress="")
             sess.add(user_session)
+            sess.flush()
         sess.add(UserResponse(session=session_id, question=question, winner=winner, loser=loser))
         sess.commit()
 
@@ -92,6 +94,7 @@ def submit_error(question, session_id):
         if not user_session:
             user_session = User(id=session_id, ipaddress="")
             sess.add(user_session)
+            sess.flush()
         sess.add(QuestionError(session=session_id, question=question))
         sess.commit()
 

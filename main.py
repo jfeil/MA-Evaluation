@@ -20,21 +20,58 @@ app.layout = dbc.Container(html.Div(
                 'textAlign': 'center',
             }
         ),
-        html.H2(
-            id="title",
-            children='',
-            style={
-                'textAlign': 'center',
-                'color': 'red'
-            }
-        ),
-        html.Div(children="", id="output_question"),
-        html.Div(children="", id="output_definition_1"),
-        html.Div(children="", id="output_definition_2"),
-        html.Button("SELECT 1", id="button_1"),
-        html.Button("SELECT 2", id="button_2"),
+        dbc.Card([
+            dbc.CardHeader([
+                html.H5("", id="title", className="card-title"),
+            ]),
+            dbc.CardBody(
+                [
+                    html.P(
+                        "",
+                        id="output_question",
+                        className="card-text",
+                    ),
+                ]
+            )]),
+        html.Div(children="", id=""),
+        dbc.CardGroup(
+            [
+                dbc.Card([
+                    dbc.CardHeader([
+                        html.H5("Option 1", className="card-title"),
+                    ]),
+                    dbc.CardBody(
+                        [
+                            html.P(
+                                "",
+                                id="output_definition_1",
+                                className="card-text",
+                            ),
+                            dbc.Button(
+                                "1 ist besser", id="button_1", color="primary", className="mt-auto"
+                            ),
+                        ]
+                    )]
+                ),
+                dbc.Card([
+                    dbc.CardHeader(
+                        [html.H5("Option 2", className="card-title")]
+                    ),
+                    dbc.CardBody(
+                        [
+                            html.P(
+                                "",
+                                id="output_definition_2",
+                                className="card-text",
+                            ),
+                            dbc.Button(
+                                "2 ist besser", id="button_2", color="success", className="mt-auto"
+                            ),
+                        ]
+                    )]
+                )]),
         html.Br(),
-        html.Button("!ERROR IN QUESTION!", id="button_error"),
+        dbc.Button("!ERROR IN QUESTION!", id="button_error", color="danger", className="me-1"),
     ]
 ), fluid=True)
 
@@ -101,7 +138,8 @@ def submit_2(_, question, output_1, output_2, session_id):
 
 
 def submit_selection(question, winner, loser, session_id):
-    submit_response(question[1]['props']['children'], winner[1]['props']['children'], loser[1]['props']['children'], session_id)
+    submit_response(question[1]['props']['children'], winner[1]['props']['children'], loser[1]['props']['children'],
+                    session_id)
 
 
 @callback(
@@ -112,7 +150,7 @@ def submit_selection(question, winner, loser, session_id):
     prevent_initial_call=True
 )
 def submit_question_error(_, question, session_id):
-    submit_error(question[1]['props']['children'], session_id[1]['props']['children'])
+    submit_error(question[1]['props']['children'], session_id)
     return "/"
 
 
