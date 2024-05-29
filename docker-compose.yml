@@ -5,20 +5,22 @@ services:
       - .env.devel
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ma-staging.rule=Host(`ma-staging.jfeil.de`)"
+      - "traefik.http.routers.ma-staging.rule=Host(`ma-staging.jfeil.de`, `testing.jfeil.de`)"
       - "traefik.http.routers.ma-staging.entrypoints=web"
       - "traefik.http.routers.ma-staging.middlewares=https-redirect@file"
-      - "traefik.http.routers.ma-staging_tls.rule=Host(`ma-staging.jfeil.de`)"
+      - "traefik.http.routers.ma-staging_tls.rule=Host(`ma-staging.jfeil.de`, `testing.jfeil.de`)"
       - "traefik.http.routers.ma-staging_tls.tls.certresolver=letsencrypt_http"
       - "traefik.http.routers.ma-staging_tls.entrypoints=websecure"
       - "traefik.http.routers.ma-staging_tls.tls=true"
       - "traefik.http.services.ma-staging.loadbalancer.server.port=8080"
 
   db:
-    image: postgres
+    image: postgres:16.3
     restart: always
     # set shared memory limit when using docker-compose
     shm_size: 128mb
+    volumes:
+      - ./postgresql:/var/lib/postgresql/data
     # or set shared memory limit when deploy via swarm stack
     #volumes:
     #  - type: tmpfs
@@ -27,8 +29,8 @@ services:
     #      size: 134217728 # 128*2^20 bytes = 128Mb
     ports:
       - "5432:5432"
-    environment:
-      POSTGRES_PASSWORD: example
+    env_file:
+      - .env.devel
 
   adminer:
     image: adminer

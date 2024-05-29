@@ -8,7 +8,7 @@ from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped, relationship,
 from sqlalchemy.dialects.postgresql import UUID
 
 
-engine = create_engine(f"postgresql://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_SERVER']}/{os.environ['DB_DATABASE']}")
+engine = create_engine(f"postgresql://{os.environ['POSTGRES_USER']}:{os.environ['POSTGRES_PASSWORD']}@{os.environ['DB_SERVER']}/{os.environ['POSTGRES_DB']}")
 
 
 class Base(DeclarativeBase):
