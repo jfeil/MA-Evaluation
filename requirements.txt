@@ -6,3 +6,4 @@ dash-bootstrap-components~=1.6.0
 psycopg2~=2.9.9
 tqdm~=4.66.4
 Flask~=3.0.3
+pandas~=2.2.2
