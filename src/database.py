@@ -51,8 +51,9 @@ class UserResponse(Base):
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     session: Mapped[UUID] = mapped_column(ForeignKey("user.id"))
     question: Mapped[str] = mapped_column(ForeignKey("question.id"))
-    winner: Mapped[UUID] = mapped_column(ForeignKey("definition_response.id"))
-    loser: Mapped[UUID] = mapped_column(ForeignKey("definition_response.id"))
+    left: Mapped[UUID] = mapped_column(ForeignKey("definition_response.id"))
+    right: Mapped[UUID] = mapped_column(ForeignKey("definition_response.id"))
+    winner: Mapped[int]
 
 
 class QuestionError(Base):
@@ -78,14 +79,14 @@ def random_question() -> Tuple[Question, Definition, Definition, DefinitionGener
     return question, *definitions, *generators
 
 
-def submit_response(question, winner, loser, session_id):
+def submit_response(question, left, right, winner, session_id):
     with Session(engine) as sess:
         user_session = sess.get(User, session_id)
         if not user_session:
             user_session = User(id=session_id, ipaddress="")
             sess.add(user_session)
             sess.flush()
-        sess.add(UserResponse(session=session_id, question=question, winner=winner, loser=loser))
+        sess.add(UserResponse(session=session_id, question=question, left=left, right=right, winner=winner))
         sess.commit()
 
 

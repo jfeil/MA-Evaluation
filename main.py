@@ -1,5 +1,5 @@
 import dash
-from dash import Dash
+from dash import Dash, dcc
 import flask
 import dash_bootstrap_components as dbc
 
@@ -8,6 +8,7 @@ dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.mi
 app = Dash(__name__, external_stylesheets=[dbc.themes.DARKLY, dbc_css], server=server, use_pages=True)
 
 app.layout = [
+    dcc.Location(id='url', refresh=False),
     dash.page_container
 ]
 

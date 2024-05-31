@@ -11,7 +11,6 @@ dash.register_page(__name__, path='/')
 
 layout = dbc.Container(html.Div(
     [
-        dcc.Location(id='url', refresh=False),
         dcc.Store(id='session_uuid', storage_type='local'),
         html.H1(
             children='Jans Masterarbeitsevaluierungshilfswebseite :)',
@@ -122,7 +121,9 @@ def change_text(_):
     prevent_initial_call=True
 )
 def submit_1(_, question, output_1, output_2, session_id):
-    submit_selection(question, output_1, output_2, session_id)
+    if not question:
+        return dash.no_update
+    submit_selection(question, output_1, output_2, 0, session_id)
     return "/"
 
 
@@ -136,13 +137,15 @@ def submit_1(_, question, output_1, output_2, session_id):
     prevent_initial_call=True
 )
 def submit_2(_, question, output_1, output_2, session_id):
-    submit_selection(question, output_2, output_1, session_id)
+    if not question:
+        return dash.no_update
+    submit_selection(question, output_1, output_2, 1, session_id)
     return "/"
 
 
-def submit_selection(question, winner, loser, session_id):
-    submit_response(question[1]['props']['children'], winner[1]['props']['children'], loser[1]['props']['children'],
-                    session_id)
+def submit_selection(question, left, right, winner, session_id):
+    submit_response(question[1]['props']['children'], left[1]['props']['children'], right[1]['props']['children'],
+                    winner, session_id)
 
 
 @callback(
@@ -153,5 +156,7 @@ def submit_selection(question, winner, loser, session_id):
     prevent_initial_call=True
 )
 def submit_question_error(_, question, session_id):
+    if not question:
+        return dash.no_update
     submit_error(question[1]['props']['children'], session_id)
     return "/"
