@@ -22,15 +22,19 @@ layout = dbc.Container([
     ),
     dcc.Graph(id="generator-graph"),
     html.Br(),
-    html.H4('User comparison'),
-    dcc.Graph(id="user-graph"),
+    html.H4('User side comparison'),
+    dcc.Graph(id="user-orientation-graph"),
+    html.Br(),
+    html.H4('User generator comparison'),
+    dcc.Graph(id="user-generator-graph"),
 ])
 
 
 @callback(
     Output("dropdown", "options"),
     Output("dropdown", "value"),
-    Output("user-graph", "figure"),
+    Output("user-orientation-graph", "figure"),
+    Output("user-generator-graph", "figure"),
     Output("data", "data"),
     Input("url", "pathname"),
     State("selection", "data")
@@ -42,7 +46,8 @@ def change_text(_, selection_state):
     with Session(engine) as sess:
         generator_list = sess.query(DefinitionGenerator).all()
         generators = {g.id.hex: {g.id.hex: ([], []) for g in generator_list} for g in generator_list}
-        users = defaultdict(lambda: [0, 0])
+        users_orientation = defaultdict(lambda: [0, 0])
+        users_generator = defaultdict(lambda: {g.id.hex: 0 for g in generator_list})
 
         name_to_generator = {generator_name(g): g.id.hex for g in generator_list}
         generator_to_name = {g.id.hex: generator_name(g) for g in generator_list}
@@ -50,16 +55,22 @@ def change_text(_, selection_state):
         user_responses = sess.query(UserResponse).all()
         for resp in user_responses:
             winner = resp.winner  # type: int
-            users[str(resp.session.hex)][winner] += 1
+            users_orientation[str(resp.session.hex)][winner] += 1
 
             result = (sess.get(Definition, resp.left).generator.id.hex, sess.get(Definition, resp.right).generator.id.hex)
             generators[result[winner]][result[1 - winner]][0].append(resp.id.hex)
             generators[result[1 - winner]][result[winner]][1].append(resp.id.hex)
+            users_generator[str(resp.session.hex)][result[winner]] += 1
 
-    users_df = []
-    for key, value in users.items():
-        users_df.append([key, value[0], "Left"])
-        users_df.append([key, value[1], "Right"])
+    users_orientation_df = []
+    for key, value in users_orientation.items():
+        users_orientation_df.append([key, value[0], "Left"])
+        users_orientation_df.append([key, value[1], "Right"])
+
+    users_generator_df = []
+    for key, value in users_generator.items():
+        for kg, kv in value.items():
+            users_generator_df.append([key, kv, generator_to_name[kg]])
 
     selection_list = list(name_to_generator.keys())
     if selection_state in selection_list:
@@ -70,7 +81,10 @@ def change_text(_, selection_state):
     return (selection_list,
             selection,
             px.histogram(
-                pd.DataFrame(data=users_df, columns=["User", "Amount", "Selection"]),
+                pd.DataFrame(data=users_orientation_df, columns=["User", "Amount", "Selection"]),
+                x="User", y="Amount", color='Selection', barmode='group', height=400),
+            px.histogram(
+                pd.DataFrame(data=users_generator_df, columns=["User", "Amount", "Selection"]),
                 x="User", y="Amount", color='Selection', barmode='group', height=400),
             (generators, name_to_generator, generator_to_name)
             )
