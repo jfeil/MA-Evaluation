@@ -70,8 +70,8 @@ def change_text(_, selection_state):
     return (selection_list,
             selection,
             px.histogram(
-                pd.DataFrame(data=users_df, columns=["User", "Amount", "Orientation"]),
-                x="User", y="Amount", color='Orientation', barmode='group', height=400),
+                pd.DataFrame(data=users_df, columns=["User", "Amount", "Selection"]),
+                x="User", y="Amount", color='Selection', barmode='group', height=400),
             (generators, name_to_generator, generator_to_name)
             )
 
