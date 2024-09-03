@@ -1,17 +1,62 @@
+import base64
+import time
 import uuid
 
 import dash
 from dash import html, dcc, callback, Output, Input, State
 import dash_bootstrap_components as dbc
 
-from src.database import random_question, submit_response, submit_error
+from src.database import random_question, submit_response, submit_error, get_highscore
 
 dash.register_page(__name__, path='/')
+
+image_filename = 'assets/medal-champion-award-winner-olympic-2.svg'
+encoded_image = base64.b64encode(open(image_filename, 'rb').read()).decode()
+
+help_modal = html.Div(
+    [
+        dbc.Modal(
+            [
+                dbc.ModalHeader(dbc.ModalTitle("Herzlich Willkommen!"), close_button=True),
+                dbc.ModalBody("Hey du :)\n"
+                              "\n"
+                              "Super, dass du Lust hast mir bei meiner Masterarbeit zu helfen! In der Arbeit geht es um"
+                              " die automatisierte Erstellung von Definitionen für Wörter.\n"
+                              "\n"
+                              "Du findest ganz oben das Wort, welches wir definieren wollen, gefolgt von einem "
+                              "Beispielsatz, der das Wort beinhaltet. Hier ist das Wort auch immer (hoffentlich) rot "
+                              "markiert. \n\n"
+                              "Deine Aufgabe ist zu bewerten, welche Definition dir besser gefällt. Wenn du das Wort "
+                              "nicht kennst, nimmst du bitte die Definition, die für dich sinnvoller klingt! Du musst "
+                              "NICHT das Wort suchen und definieren!\n\n"
+                              "Danke für deine Mithilfe!\n"
+                              "Dein Jan :)",
+                              style={"white-space": "pre-line"}),
+                dbc.ModalFooter(
+                    dbc.Button(
+                        "Gelesen und Verstanden!",
+                        id="close-centered",
+                        className="ms-auto",
+                        n_clicks=0,
+                    )
+                ),
+            ],
+            id="modal-centered",
+            centered=True,
+            is_open=False,
+            keyboard=False,
+            backdrop="static"
+        ),
+    ]
+)
 
 
 layout = dbc.Container(html.Div(
     [
         dcc.Store(id='session_uuid', storage_type='local'),
+        dcc.Store(id='help_presented', storage_type='session'),
+        dcc.Store(id='load-time', data=time.time()),
+        help_modal,
         html.H1(
             children='Jans Masterarbeitsevaluierungshilfswebseite :)',
             style={
@@ -69,7 +114,9 @@ layout = dbc.Container(html.Div(
                     )]
                 )]),
         html.Br(),
-        dbc.Button("!ERROR IN QUESTION!", id="button_error", color="danger", className="me-1"),
+        dbc.Button("!ERROR IN QUESTION!", id="button_error", color="danger", className="me-1",
+                   style={"display": "none"}),
+        html.Div(id="highscore-div", style={"white-space": "pre-line"}),
     ]
 ), fluid=True)
 
@@ -85,12 +132,26 @@ def generate_uuid(current_uuid):
 
 
 @callback(
+    Output("help_presented", "data"),
+    Output("modal-centered", "is_open"),
+    Input("help_presented", "data"),
+    Input("close-centered", "n_clicks"),
+    prevent_initial_call=True
+)
+def generate_uuid(help_presented, n_close):
+    if help_presented is not None or n_close:
+        return True, False
+    return help_presented, True
+
+
+@callback(
     Output("title", "children"),
     Output("output_question", "children"),
     Output("output_definition_1", "children"),
     Output("output_definition_2", "children"),
     Output("info_1", "children"),
     Output("info_2", "children"),
+    Output("load-time", "data"),
     Input("url", "pathname")
 )
 def change_text(_):
@@ -106,9 +167,24 @@ def change_text(_):
         highlighted_context[:-1],
         [definition_1.text, html.Span(str(definition_1.id), style={"visibility": "hidden"})],
         [definition_2.text, html.Span(str(definition_2.id), style={"visibility": "hidden"})],
-        ["Option 1", f" ({generator_1.type}: {generator_1.name})"],
-        ["Option 2", f" ({generator_2.type}: {generator_2.name})"]
+        ["Option 1"],  # , f" ({generator_1.type}: {generator_1.name})"],
+        ["Option 2"],  # , f" ({generator_2.type}: {generator_2.name})"],
+        time.time()
     ]
+
+
+@callback(
+    Output("highscore-div", "children"),
+    Input("url", "pathname"),
+    State("session_uuid", "data"),
+)
+def gamification(_, session_id):
+    highscore, userscore = get_highscore(session_id)
+    resp = [(f"Deine Anzahl an bisherigen Antworten: {userscore}\n"
+            f"Highscore: {highscore}")]
+    if highscore <= userscore:
+        resp.append(html.Img(src='assets/medal-champion-award-winner-olympic-2.svg'))
+    return resp
 
 
 @callback(
@@ -118,12 +194,13 @@ def change_text(_):
     State("output_definition_1", "children"),
     State("output_definition_2", "children"),
     State("session_uuid", "data"),
+    State("load-time", "data"),
     prevent_initial_call=True
 )
-def submit_1(_, question, output_1, output_2, session_id):
+def submit_1(_, question, output_1, output_2, session_id, load_time):
     if not question:
         return dash.no_update
-    submit_selection(question, output_1, output_2, 0, session_id)
+    submit_selection(question, output_1, output_2, 0, session_id, load_time)
     return "/"
 
 
@@ -134,16 +211,20 @@ def submit_1(_, question, output_1, output_2, session_id):
     State("output_definition_1", "children"),
     State("output_definition_2", "children"),
     State("session_uuid", "data"),
+    State("load-time", "data"),
     prevent_initial_call=True
 )
-def submit_2(_, question, output_1, output_2, session_id):
+def submit_2(_, question, output_1, output_2, session_id, load_time):
     if not question:
         return dash.no_update
-    submit_selection(question, output_1, output_2, 1, session_id)
+    submit_selection(question, output_1, output_2, 1, session_id, load_time)
     return "/"
 
 
-def submit_selection(question, left, right, winner, session_id):
+def submit_selection(question, left, right, winner, session_id, load_time):
+    time_on_page = time.time() - load_time
+    if time_on_page < 3:
+        return
     submit_response(question[1]['props']['children'], left[1]['props']['children'], right[1]['props']['children'],
                     winner, session_id)
 

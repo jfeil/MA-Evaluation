@@ -3,7 +3,7 @@ import uuid
 from random import shuffle
 from typing import Optional, List, Tuple
 
-from sqlalchemy import create_engine, ForeignKey, func
+from sqlalchemy import create_engine, ForeignKey, func, desc
 from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped, relationship, Session
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -77,6 +77,24 @@ def random_question() -> Tuple[Question, Definition, Definition, DefinitionGener
         definitions = definitions[:2]
         generators = [d.generator for d in definitions]
     return question, *definitions, *generators
+
+
+def get_highscore(session_id) -> Tuple[int, int]:
+    with Session(engine) as sess:
+        user_session = sess.query(UserResponse.session, func.count(UserResponse.session)).group_by(UserResponse.session).filter(UserResponse.session == session_id).all()
+        if not user_session:
+            cur_score = 0
+        else:
+            cur_score = user_session[0][1]
+        resp = sess.query(UserResponse.session,
+                          func.count(UserResponse.session).label('count')
+                          ).group_by(UserResponse.session).order_by(desc('count')).limit(1).all()
+        if resp:
+            highscore = resp[0][1]
+        else:
+            highscore = 0
+
+    return highscore, cur_score
 
 
 def submit_response(question, left, right, winner, session_id):
