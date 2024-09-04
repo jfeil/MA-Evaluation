@@ -180,7 +180,7 @@ def change_text(_):
 )
 def gamification(_, session_id):
     highscore, userscore = get_highscore(session_id)
-    resp = [(f"Deine Anzahl an bisherigen Antworten: {userscore}\n"
+    resp = [(f"Deine bisherige Anzahl an Antworten: {userscore}\n"
             f"Highscore: {highscore}")]
     if highscore <= userscore:
         resp.append(html.Img(src='assets/medal-champion-award-winner-olympic-2.svg'))
@@ -223,7 +223,7 @@ def submit_2(_, question, output_1, output_2, session_id, load_time):
 
 def submit_selection(question, left, right, winner, session_id, load_time):
     time_on_page = time.time() - load_time
-    if time_on_page < 3:
+    if time_on_page < 1.5:
         return
     submit_response(question[1]['props']['children'], left[1]['props']['children'], right[1]['props']['children'],
                     winner, session_id)

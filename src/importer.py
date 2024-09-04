@@ -36,9 +36,9 @@ for path in tqdm(sys.argv[1:]):
         questions = []
         new_datapoints = []
         for datapoint in tqdm(input_data['data'], leave=False):
-            title = datapoint[1]['title']
-            context_word = datapoint[1]['context_word']
-            context_sentence = datapoint[1]['context_sentence']
+            title = datapoint[0]
+            context_sentence = datapoint[1]
+            context_word = datapoint[2]
 
             question_hash = hashlib.sha1(f"{title}{context_word}{context_sentence}".encode()).hexdigest()
             question = sess.get(Question, question_hash)
@@ -55,7 +55,7 @@ for path in tqdm(sys.argv[1:]):
                 gt = Definition(
                     generator_id=gt_gen.id,
                     question_id=question.id,
-                    text=datapoint[2]
+                    text=datapoint[3]
                 )
                 sess.add(gt)
                 sess.commit()
@@ -63,7 +63,7 @@ for path in tqdm(sys.argv[1:]):
             pred = Definition(
                 generator_id=generator.id,
                 question_id=question.id,
-                text=datapoint[3]
+                text=datapoint[4]
             )
 
             sess.add(pred)
