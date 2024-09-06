@@ -57,10 +57,38 @@ layout = dbc.Container(html.Div(
         dcc.Store(id='help_presented', storage_type='session'),
         dcc.Store(id='load-time', data=time.time()),
         help_modal,
-        html.H1(
-            children='Jans Masterarbeitsevaluierungshilfswebseite :)',
+        html.Div(
+            [
+                # Title (Centered)
+                html.H1(
+                    children='Jans Masterarbeitsevaluierungshilfswebseite :)',
+                    style={
+                        'textAlign': 'center',
+                        'flex': '1'
+                    }
+                ),
+
+                dbc.Button(
+                    "Überspringen", id="button_skip", color="danger", className="mt-auto", style={
+                        'margin-left': 'auto',  # Pushes the button to the right
+                        'margin-top': 'auto',  # Pushes the button to the right
+                        'padding': '10px 10px',
+                    }
+                ),
+
+                dbc.Button(
+                    "?", id="button_help", color="info", className="mt-auto", style={
+                        'margin-left': 'auto',  # Pushes the button to the right
+                        'margin-top': 'auto',  # Pushes the button to the right
+                        'padding': '10px 20px'
+                    }
+                ),
+            ],
             style={
-                'textAlign': 'center',
+                'display': 'flex',
+                'align-items': 'center',
+                'padding': '10px',
+                'width': '100%',
             }
         ),
         dbc.Card([
@@ -135,13 +163,16 @@ def generate_uuid(current_uuid):
     Output("help_presented", "data"),
     Output("modal-centered", "is_open"),
     Input("help_presented", "data"),
+    Input("button_help", "n_clicks"),
     Input("close-centered", "n_clicks"),
+    State("modal-centered", "is_open"),
     prevent_initial_call=True
 )
-def generate_uuid(help_presented, n_close):
-    if help_presented is not None or n_close:
-        return True, False
-    return help_presented, True
+def initial_help(help_presented, n_open, n_close, is_open):
+    help_presented = help_presented is None
+    if help_presented or n_open or n_close:
+        return help_presented, not is_open
+    return help_presented, is_open
 
 
 @callback(
@@ -185,6 +216,15 @@ def gamification(_, session_id):
     if highscore <= userscore:
         resp.append(html.Img(src='assets/medal-champion-award-winner-olympic-2.svg'))
     return resp
+
+
+@callback(
+    Output("url", "pathname", allow_duplicate=True),
+    Input("button_skip", "n_clicks"),
+    prevent_initial_call=True
+)
+def skip(_):
+    return "/"
 
 
 @callback(
