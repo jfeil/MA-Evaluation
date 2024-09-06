@@ -57,40 +57,15 @@ layout = dbc.Container(html.Div(
         dcc.Store(id='help_presented', storage_type='session'),
         dcc.Store(id='load-time', data=time.time()),
         help_modal,
-        html.Div(
-            [
-                # Title (Centered)
-                html.H1(
-                    children='Jans Masterarbeitsevaluierungshilfswebseite :)',
-                    style={
-                        'textAlign': 'center',
-                        'flex': '1'
-                    }
-                ),
-
-                dbc.Button(
-                    "Überspringen", id="button_skip", color="danger", className="mt-auto", style={
-                        'margin-left': 'auto',  # Pushes the button to the right
-                        'margin-top': 'auto',  # Pushes the button to the right
-                        'padding': '10px 10px',
-                    }
-                ),
-
-                dbc.Button(
-                    "?", id="button_help", color="info", className="mt-auto", style={
-                        'margin-left': 'auto',  # Pushes the button to the right
-                        'margin-top': 'auto',  # Pushes the button to the right
-                        'padding': '10px 20px'
-                    }
-                ),
-            ],
-            style={
-                'display': 'flex',
-                'align-items': 'center',
-                'padding': '10px',
-                'width': '100%',
-            }
+        # Title (Centered)
+        html.H1(
+            children='Jans Masterarbeits​evaluierungs​hilfs​webseite :)',
+            style={'textAlign': 'center'}
         ),
+        html.Div([
+            dbc.Button("?", id="button_help", color="info", className="mt-auto")
+        ], className="d-grid gap-2 d-md-flex justify-content-md-end"),
+        html.Br(),
         dbc.Card([
             dbc.CardHeader([
                 html.H5("", id="title", className="card-title"),
@@ -145,6 +120,10 @@ layout = dbc.Container(html.Div(
         dbc.Button("!ERROR IN QUESTION!", id="button_error", color="danger", className="me-1",
                    style={"display": "none"}),
         html.Div(id="highscore-div", style={"white-space": "pre-line"}),
+        html.Br(),
+        html.Div([
+            dbc.Button("Überspringen", id="button_skip", color="danger", className="mt-auto"),
+        ], className="d-grid gap-2 d-md-flex justify-content-md-end"),
     ]
 ), fluid=True)
 

@@ -5,10 +5,10 @@ services:
       - .env.devel
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ma-staging.rule=Host(`ma-staging.jfeil.de`)"
+      - "traefik.http.routers.ma-staging.rule=Host(`ma.jfeil.de`)"
       - "traefik.http.routers.ma-staging.entrypoints=web"
       - "traefik.http.routers.ma-staging.middlewares=https-redirect@file"
-      - "traefik.http.routers.ma-staging_tls.rule=Host(`ma-staging.jfeil.de`)"
+      - "traefik.http.routers.ma-staging_tls.rule=Host(`ma.jfeil.de`)"
       - "traefik.http.routers.ma-staging_tls.tls.certresolver=letsencrypt_http"
       - "traefik.http.routers.ma-staging_tls.entrypoints=websecure"
       - "traefik.http.routers.ma-staging_tls.tls=true"
